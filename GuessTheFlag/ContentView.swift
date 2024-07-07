@@ -7,6 +7,18 @@
 
 import SwiftUI
 
+//  Go back to project 2 and replace the Image view used for flags with a new FlagImage() view
+//  that renders one flag image using the specific set of modifiers we had.
+struct FlagImage: View {
+    var country: String
+    
+    var body: some View {
+        Image(country)
+            .clipShape(.capsule)
+            .shadow(radius: 5)
+    }
+}
+
 struct ContentView: View {
     @State var countries = ["Estonia", "France", "Germany", "Ireland", "Italy", "Nigeria", "Poland", "Spain", "UK", "Ukraine", "US"]
         .shuffled()
@@ -18,6 +30,7 @@ struct ContentView: View {
     @State private var score: Int = 0
     @State private var maxPlays = 2
     @State private var playCount: Int = 0
+
         
     var body: some View {
         ZStack {
@@ -47,9 +60,11 @@ struct ContentView: View {
                             // flag was tapped
                             flagTapped(number)
                         } label: {
-                            Image(countries[number])
-                                .clipShape(.capsule)
-                                .shadow(radius: 5)
+                            FlagImage(country: countries[number])
+                            // old code before the view
+//                            Image(countries[number])
+//                                .clipShape(.capsule)
+//                                .shadow(radius: 5)
                         }
                         
                     }
