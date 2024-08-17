@@ -7,15 +7,41 @@
 
 import SwiftUI
 
-//  Go back to project 2 and replace the Image view used for flags with a new FlagImage() view
-//  that renders one flag image using the specific set of modifiers we had.
+//Go back to the Guess the Flag project and add some animation:
+//
+// When you tap a flag, make it spin around 360 degrees on the Y axis.
+// Make the other two buttons fade out to 25% opacity.
+// Add a third effect of your choosing to the two flags the user didn’t choose – maybe make them scale down? Or flip in a different direction? Experiment!
+
+
+
+struct SpinAroundModifier: ViewModifier {
+    let amount: Double
+    let anchor: UnitPoint
+    
+    func body(content: Content) -> some View {
+        content
+            .rotationEffect(.degrees(amount), anchor: anchor)
+    }
+}
+
+extension AnyTransition {
+    static var pivot: AnyTransition {
+        .modifier(
+            active: SpinAroundModifier(amount: 360, anchor: .center),
+            identity: SpinAroundModifier(amount: -360, anchor: .center)
+        )
+    }
+}
+
 struct FlagImage: View {
     var country: String
     
     var body: some View {
-        Image(country)
-            .clipShape(.capsule)
-            .shadow(radius: 5)
+            Image(country)
+                .clipShape(.capsule)
+                .shadow(radius: 5)
+                .transition(.pivot)
     }
 }
 
@@ -30,6 +56,8 @@ struct ContentView: View {
     @State private var score: Int = 0
     @State private var maxPlays = 2
     @State private var playCount: Int = 0
+    
+    @State private var shouldSpin = false
 
         
     var body: some View {
@@ -58,15 +86,29 @@ struct ContentView: View {
                     ForEach(0..<3) { number in
                         Button {
                             // flag was tapped
-                            flagTapped(number)
+//                            flagTapped(number)
+                            if playCount >= maxPlays {
+                                scoreTitle = "Game Over"
+                                playCount = 0
+                            } else if number == correctAnswer {
+                                scoreTitle = "Correct"
+                                score += 5
+                            } else {
+                                scoreTitle = "Wrong!"
+                                score -= 5
+                            }
+                            
+                            scoreTitle += " That's the flag of \(countries[number])"
+                            playCount += 1
+                            showingScore = true
+                            shouldSpin.toggle()
                         } label: {
-                            FlagImage(country: countries[number])
-                            // old code before the view
-//                            Image(countries[number])
-//                                .clipShape(.capsule)
-//                                .shadow(radius: 5)
+                            if shouldSpin {
+                                FlagImage(country: countries[number])
+                            } else {
+                                FlagImage(country: countries[number])
+                            }
                         }
-                        
                     }
                 }
                 .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/)
@@ -74,8 +116,10 @@ struct ContentView: View {
                 .background(.regularMaterial)
                 .clipShape(.rect(cornerRadius: 20))
                 
+                
                 Spacer()
                 Spacer()
+                
                 Text("\(playCount >= maxPlays ? "Final Score" : "Score"): \(score)")
                     .foregroundStyle(.white)
                     .font(.title.bold())
@@ -90,23 +134,7 @@ struct ContentView: View {
         } message: {
             Text("Your \(playCount >= maxPlays ? "final" : String()) score is \(score)")
         }
-    }
-    
-    func flagTapped(_ number: Int) {
-        if playCount >= maxPlays {
-            scoreTitle = "Game Over"
-            playCount = 0
-        } else if number == correctAnswer {
-            scoreTitle = "Correct"
-            score += 5
-        } else {
-            scoreTitle = "Wrong!"
-            score -= 5
-        }
         
-        scoreTitle += " That's the flag of \(countries[number])"
-        playCount += 1
-        showingScore = true
     }
     
     func askQuestion() {
